@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { offsetDateTimeSchema } from "./offsetDateTime.js";
 
-/** The validator this schema replaces; it remains the oracle for the accepted set. */
+/** The validator this schema replaces. Omitted seconds are a known 4.6.7 divergence. */
 const replaced = z.string().datetime({ offset: true });
 
 const ACCEPTED: readonly (readonly [string, string])[] = [
@@ -55,11 +55,17 @@ describe("offset datetime schema", () => {
 
   it("classifies every case exactly as the replaced Zod validator does", () => {
     const divergences = CASES.filter(
-      ([, value]) =>
+      ([label, value]) =>
+        label !== "omitted seconds" &&
         offsetDateTimeSchema.safeParse(value).success !==
-        replaced.safeParse(value).success,
+          replaced.safeParse(value).success,
     ).map(([label]) => label);
     expect(divergences).toEqual([]);
+    // Zod 4.6.7 requires seconds; this schema keeps the 4.4 accepted set.
+    expect(offsetDateTimeSchema.safeParse("2026-10-09T04:00Z").success).toBe(
+      true,
+    );
+    expect(replaced.safeParse("2026-10-09T04:00Z").success).toBe(false);
   });
 
   it("emits a pattern that compiles in every mode a client may use", () => {
