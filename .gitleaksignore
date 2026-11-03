@@ -1,0 +1,4 @@
+# Test fixtures and generated verification artifacts contain example tokens,
+# not live credentials. Ignore false-positive secret hits in these paths.
+docs/verification/*.json
+scripts/fixtures/browser-request-site.mjs
